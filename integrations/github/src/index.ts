@@ -7,6 +7,7 @@ import {
   IssuesOpenedEvent,
   PullRequestEvent,
   PullRequestReviewEvent,
+  PullRequestReviewCommentEvent,
   PushEvent,
   RepositoryCreatedEvent,
   StarCreatedEvent,
@@ -28,6 +29,7 @@ import {
   newBranch,
   pullRequestOpened,
   pullRequestReviewSubmitted,
+  pullRequestReviewCommentCreated,
   push,
   starredRepo,
 } from "./webhook-examples";
@@ -409,6 +411,43 @@ const onPullRequestReview: EventSpecification<PullRequestReviewEvent> = {
   ],
 };
 
+const onPullRequestReviewComment: EventSpecification<PullRequestReviewCommentEvent> = {
+  name: "pull_request_review_comment",
+  title: "On pull request review comment",
+  source: "github.com",
+  icon: "github",
+  examples: [pullRequestReviewCommentCreated],
+  parsePayload: (payload) => payload as PullRequestReviewCommentEvent,
+  runProperties: (payload) => [
+    {
+      label: "Repo",
+      text: payload.repository.name,
+      url: payload.repository.html_url,
+    },
+    {
+      label: "action",
+      text: payload.action,
+    },
+    {
+      label: "Author",
+      text: payload.comment.user.login,
+      url: payload.comment.user.html_url,
+    },
+    {
+      label: "Body",
+      text: truncate(payload.comment.body ?? "none", 40),
+    },
+    {
+      label: "PR Number",
+      text: `${payload.pull_request.number}`,
+    },
+    {
+      label: "PR Title",
+      text: payload.pull_request.title,
+    },
+  ],
+};
+
 export const events = {
   /** When any action is performed on an issue  */
   onIssue,
@@ -434,6 +473,8 @@ export const events = {
   onPullRequest,
   /** When Pull Request review has activity. */
   onPullRequestReview,
+  /**When Pull Request review has comments made on a portion of the unified diff during a pull request review. */
+  onPullRequestReviewComment
 };
 
 // params.event has to be a union of all the values of the exports events object
